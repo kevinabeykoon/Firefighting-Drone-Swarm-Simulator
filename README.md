@@ -1,4 +1,7 @@
 # Firefighting Drone Simulation
+<img width="899" height="825" alt="image" src="https://github.com/user-attachments/assets/10da6a45-80c4-4344-a1cd-ac0eaaa6821a" />
+
+
 
 ## Overview
 This project simulates a **firefighting system using autonomous drones** coordinated by a central scheduler. Fire incidents occur over a defined time from an events sheet, drones are dispatched based on priority, and fires may require multiple drones to fully extinguish.
