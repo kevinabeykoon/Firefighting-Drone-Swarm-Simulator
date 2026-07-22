@@ -1,74 +1,256 @@
-# Firefighting Drone Simulation
-<img width="899" height="825" alt="image" src="https://github.com/user-attachments/assets/10da6a45-80c4-4344-a1cd-ac0eaaa6821a" />
+# Firefighting Drone Swarm Simulation
+<img width="800" height="450" alt="firedronegif1" src="https://github.com/user-attachments/assets/c0e3bed4-1478-4425-bb20-065236e3ce6c" />
 
+A distributed simulation platform that models how autonomous firefighting drones coordinate, communicate, and respond to wildfire incidents in real time across a fault-tolerant network.
 
+---
 
 ## Overview
-This project simulates a **firefighting system using autonomous drones** coordinated by a central scheduler. Fire incidents occur over a defined time from an events sheet, drones are dispatched based on priority, and fires may require multiple drones to fully extinguish.
 
-## Main Systems
+This project simulates a **firefighting drone swarm system** capable of coordinating multiple autonomous drones across large wildfire zones. The platform demonstrates how distributed autonomous agents can dynamically respond to emergencies, balance workloads, recover from failures, and communicate over a network.
 
-### FireIncidentSubsystem
-- Reads fire events from an input file
-- Triggers fire incidents at the correct simulation time
-- Sends events to the `Scheduler`
-  
-### Scheduler
-- Central coordinator; maintains 3 **priority queues** (`HIGH`, `MODERATE`, `LOW`)
-- State machine: IDLE (no incidents) → DISPATCHING (assigning missions) → MONITORING (tracking active drones) → REFILLING / FAULT_HANDLING as needed.
-- Assigns fire missions to drones
-- Reschedules partially extinguished fires and tracks per‑zone water remaining.
-- Synchronizes drone threads via wait() / notifyAll().
+The simulation is built around **three independently running subsystems**:
 
-### DroneSubsystem
-- Each drone runs in its own thread.
-- Explicit state machine: IDLE, ONROUTE, EXTINGUISHING, REFILLING, FAULTED, DECOMMISSIONED.
-- Requests missions from scheduler when idle.
-- Simulates travel cell‑by‑cell across the grid; arrival triggers extinguishing.
-- Extinguishes fire with nozzle open/close delays and water flow rate; water depletes.
-- Returns to base and refills when empty; informs scheduler of all state transitions.
+- 🧠 **Scheduler**
+- 🚁 **Drone Control System**
+- 🔥 **Fire Incident Simulator**
 
-### SimulationClock
-- Provides a shared notion of simulation time
-- Keeps all subsystems synchronized
+Each subsystem runs as its own process and communicates using **UDP networking**, closely mirroring how real-world distributed systems exchange information under time-sensitive conditions. The simulation can even be executed across **multiple physical devices** on the same network.
 
-### FireEvent
-- Represents a fire incident
-- Tracks severity, required water, and remaining fire
+---
 
+## Features
 
-## Key Features
+- Real-time drone scheduling
+- Distributed multi-process architecture
+- Configurable simulation engine
+- Autonomous drone finite state machines
+- Fault injection and recovery simulation
+- Performance instrumentation and monitoring
+- Dynamic mission reassignment
+- Battery and water capacity management
+- Configurable wildfire scenarios
 
-- Priority-based fire scheduling
-- Multi-drone coordination
-- Partial fire extinguishing with rescheduling
-- Centralized thread synchronization
-- Simulated time progression
-- Water capacity constraints and refilling
+---
 
+## System Architecture
 
-## How to Run Application
+The platform follows a **distributed concurrent systems architecture**. Rather than running as a single application, each subsystem operates independently and exchanges information using **UDP packets**.
 
-1. Run the Main class
-2. Observe simulation output in the console
-3. Kill the threads manually after it has finished
+### 🧠 Scheduler
 
-Ensure the csv event file is in the src folder.
+The Scheduler serves as the central coordination engine and is responsible for:
 
+- Receiving incoming fire incidents
+- Tracking drone availability
+- Calculating dispatch priorities
+- Assigning missions
+- Monitoring drone health
+- Reassigning abandoned missions
 
-## How To Run Tests
-All unit tests relevant to iteration 2are located in the `test/Iteration 2/` directory. The tests verify the behavior of the Scheduler, DroneSubsystem, and FireEvent classes, including priority handling, partial mission assignment, and state transitions.
+### 🚁 Drone Control System
 
-#### Run all tests in the `Iteration 2` package:
-1. In the **Project** tool window, navigate to `test/Iteration 2`.
-2. Right‑click on the package (or on any test class) and select **Run 'Tests in 'Iteration 2''** (or **Run All Tests**).
+Each drone behaves as an independent autonomous agent with its own state machine, tracking:
 
-#### Run a single test class:
-- Open the desired test class (e.g., `SchedulerTest2.java`).
-- Click the green triangle in the gutter next to the class declaration or any individual test method, then select **Run 'SchedulerTest'**.
-  
+- Current location
+- Remaining water supply
+- Battery level
+- Travel status
+- Hardware condition
+- Assigned mission
 
-## Authors
-- Aryan Kumar Singh
-- Kevin Abeykoon
-- Abdullah Khan
+### 🔥 Fire Incident Simulator
+
+The simulator continuously generates wildfire events from configurable scenario files.
+
+Incidents include:
+
+- Fire timestamps
+- Severity levels
+- Target zones
+- Resource requirements
+
+This separation of responsibilities closely reflects real-world distributed infrastructure, where systems communicate over networks rather than sharing memory.
+
+---
+
+## Real-Time Drone Coordination
+
+One of the project's primary engineering challenges was designing a scheduler capable of coordinating multiple drones simultaneously while minimizing emergency response times.
+
+The Scheduler continuously evaluates:
+
+- Drone availability
+- Water and foam capacity
+- Battery level
+- Travel distance
+- Current mission status
+- Fire severity
+
+Based on this information, drones are dynamically dispatched throughout the simulation.
+
+### Intelligent Dispatching
+
+- Idle drones immediately respond to nearby fires
+- In-flight drones can be rerouted to higher-priority emergencies
+- Multiple drones cooperate on large fires
+- Drones automatically return to base when resources are depleted
+- Mission queues prevent incidents from being ignored during heavy activity
+
+Unlike many simulations, drone movement occurs in **real time**—travel, extinguishing fires, and refilling resources all consume simulated time. The overall simulation speed can also be adjusted.
+
+---
+
+## Fault Detection & Recovery
+
+Fault tolerance was a major focus of the project.
+
+The simulation models a variety of real-world failures, including:
+
+- Communication packet loss
+- Mid-flight drone failures
+- Sensor malfunctions
+- Nozzle failures
+- Hardware damage
+
+When failures occur, the system automatically detects and responds without interrupting the simulation.
+
+### Recovery Features
+
+- Timeout-based failure detection
+- Automatic mission reassignment
+- Offline drone isolation
+- Permanent fault handling
+- Live fault indicators in the monitoring interface
+
+The Scheduler continuously updates its internal state and redistributes missions across the remaining operational fleet.
+
+---
+
+## Drone State Machines
+
+Each drone operates independently using a **finite state machine (FSM)**, allowing autonomous behavior while remaining synchronized with the Scheduler.
+
+### Drone States
+
+- Idle
+- En Route
+- Extinguishing Fire
+- Refilling / Recharging
+- Returning to Base
+- Faulted
+- Decommissioned
+
+This architecture enables highly concurrent execution while maintaining coordinated swarm behavior.
+
+---
+
+## Simulation & Configuration Engine
+
+The simulation is entirely driven by configurable scenario files, making it easy to test different wildfire conditions and scheduling strategies.
+
+Configurable parameters include:
+
+- Fire event timing
+- Fire severity
+- Zone layouts
+- Travel distances
+- Drone capacities
+- Extinguishing times
+- Simulation speed
+
+Using lightweight text-based configuration files allowed for rapid testing and iteration throughout development.
+
+---
+
+## 🛠️ Technologies Used
+
+| Technology | Purpose |
+|------------|---------|
+| **Java** | Core application and simulation engine |
+| **UDP DatagramSockets** | Distributed subsystem communication |
+| **Java Threads** | Concurrent drone execution |
+| **Java Concurrency** | Real-time synchronization and scheduling |
+| **Java Swing** | Live monitoring and visualization interface |
+
+---
+
+## Key Challenges
+
+One of the most difficult aspects of the project was balancing **distributed communication** with **real-time synchronization**.
+
+Because every subsystem runs independently, maintaining consistent state across drones, fire incidents, and scheduling queues required careful coordination.
+
+Additional challenges included:
+
+- Network communication between independent processes
+- Designing scalable scheduling algorithms
+- Handling communication delays versus genuine failures
+- Maintaining synchronized system state
+- Building comprehensive tests for distributed behavior
+
+Extensive testing was implemented to validate networking, scheduling, concurrency, and fault recovery across the system.
+
+---
+
+## Example System Workflow
+
+```text
+Fire Incident Generated
+            │
+            ▼
+      Scheduler Receives Event
+            │
+            ▼
+Evaluate Drone Availability
+            │
+            ▼
+Calculate Dispatch Priority
+            │
+            ▼
+ Assign Drone(s) via UDP
+            │
+            ▼
+ Drone Travels to Fire
+            │
+            ▼
+Extinguish Fire / Monitor Status
+            │
+            ▼
+ Detect Faults (if any)
+            │
+            ▼
+ Reassign Mission if Needed
+            │
+            ▼
+Return to Base & Refill
+```
+
+---
+
+## Learning Outcomes
+
+This project explores several core computer science concepts, including:
+
+- Distributed systems
+- Concurrent programming
+- Network communication
+- Autonomous agent coordination
+- Fault-tolerant system design
+- Scheduling algorithms
+- Real-time simulation
+- Finite state machines (FSMs)
+
+---
+
+## Final Thoughts
+
+This project demonstrates how **distributed systems**, **concurrent programming**, and **fault-tolerant architecture** can be combined to coordinate autonomous agents operating in real time.
+
+By simulating large-scale wildfire response with autonomous drones, the platform showcases many of the same engineering challenges found in modern emergency response systems, distributed robotics, and autonomous infrastructure.
+
+---
+
+## License
+
+This project is licensed under the MIT License.<img width="800" height="450" alt="firedronegif1" src="https://github.com/user-attachments/assets/9789c026-7f9c-44c9-8717-6c55690e2f9a" />
